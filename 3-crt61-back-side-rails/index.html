@@ -38,7 +38,7 @@
   alt="3D model of 3 CRT61 with back and side rails"
   ar ar-modes="scene-viewer webxr quick-look" ar-scale="fixed" ar-placement="floor"
   camera-controls touch-action="pan-y" shadow-intensity="1" exposure="0.85" tone-mapping="neutral"
-  camera-orbit="-25deg 65deg 140%" field-of-view="30deg" camera-target="auto auto auto" environment-image="neutral">
+  camera-orbit="-25deg 65deg 140%" field-of-view="30deg" environment-image="neutral">
   <button slot="ar-button" class="ar-btn">View in your space</button>
 </model-viewer>
 <div class="no-ar" id="no-ar" hidden>Open this page on a phone to place the model in your room.</div>
@@ -46,7 +46,7 @@
   // Hint only when this device cannot launch AR (desktop etc.); the AR button is hidden by model-viewer in that case.
   const mv = document.querySelector('model-viewer'), hint = document.getElementById('no-ar');
   const upd = () => { hint.hidden = !!mv.canActivateAR; };
-  mv.addEventListener('load', upd); customElements.whenDefined('model-viewer').then(() => setTimeout(upd, 500));
+  mv.addEventListener('load', () => { upd(); mv.updateFraming(); mv.jumpCameraToGoal(); }); customElements.whenDefined('model-viewer').then(() => setTimeout(upd, 500));
 </script>
 <footer>Shown at real size. Drag to rotate, pinch to zoom. &copy; Staging Canadell, Humboldt SK</footer>
 </body>
