@@ -22,6 +22,9 @@
             border:0; border-radius:26px; padding:13px 24px; font-size:16px; font-weight:700; box-shadow:0 2px 8px #0004; }
   .no-ar { text-align:center; font-size:13px; color:#555; padding:8px 14px 0; }
   .no-ar[hidden] { display:none; }
+  .android-ar { text-align:center; font-size:13px; padding:10px 14px 0; }
+  .android-ar[hidden] { display:none; }
+  .android-ar a { color:var(--red); font-weight:700; }
   footer { font-size:11px; color:#777; padding:8px 14px; }
 </style>
 </head>
@@ -31,10 +34,11 @@
 </header>
 <div class="layout"><h1>3 CRT61 with back and side rails</h1><p>17'-5&quot; x 6'-8&quot;</p></div>
 
-<!-- Model is real size in metres. ar-scale="fixed" stops customers resizing it in AR.
+<!-- Model is real size in metres. ar-scale="fixed" stops customers resizing it in AR. src carries ?v=<model hash> so the
+     Google app (Scene Viewer) can't serve an old cached copy after a republish.
      ar-modes: Android -> Scene Viewer first (most reliable), WebXR fallback; iPhone -> Quick Look
      (uses model.usdz if given, otherwise model-viewer builds the USDZ on the phone). -->
-<model-viewer src="model.glb" ios-src="model.usdz"
+<model-viewer src="model.glb?v=005ee92d77" ios-src="model.usdz?v=005ee92d77"
   alt="3D model of 3 CRT61 with back and side rails"
   ar ar-modes="scene-viewer webxr quick-look" ar-scale="fixed" ar-placement="floor"
   camera-controls touch-action="pan-y" shadow-intensity="1" exposure="0.85" tone-mapping="neutral"
@@ -42,11 +46,24 @@
   <button slot="ar-button" class="ar-btn">View in your space</button>
 </model-viewer>
 <div class="no-ar" id="no-ar" hidden>Open this page on a phone to place the model in your room.</div>
+<!-- Android backup (Oct 27): direct Scene Viewer intent to the Google app with the absolute https model URL, in case
+     model-viewer's own AR button doesn't start AR (in-app QR-scanner browsers, WebXR quirks). Shown on Android only. -->
+<div class="android-ar" id="android-ar" hidden>AR not opening? <a id="sv-link" href="#">Open in Google AR viewer</a><br>
+  <small>Needs an ARCore-supported Android phone with Google Play Services for AR and the Google app.</small></div>
 <script>
   // Hint only when this device cannot launch AR (desktop etc.); the AR button is hidden by model-viewer in that case.
   const mv = document.querySelector('model-viewer'), hint = document.getElementById('no-ar');
-  const upd = () => { hint.hidden = !!mv.canActivateAR; };
+  const upd = () => { hint.hidden = !!mv.canActivateAR && location.hash !== '#ar-unavailable'; };
   mv.addEventListener('load', () => { upd(); mv.updateFraming(); mv.jumpCameraToGoal(); }); customElements.whenDefined('model-viewer').then(() => setTimeout(upd, 500));
+  if (/android/i.test(navigator.userAgent)) {
+    const page = location.href.split('#')[0], file = new URL(mv.getAttribute('src'), page).href, enc = encodeURIComponent;
+    const sv = 'intent://arvr.google.com/scene-viewer/1.0?file=' + enc(file) + '&mode=ar_preferred&resizable=false'
+      + '&title=' + enc(document.querySelector('.layout h1').textContent) + '&link=' + enc(page)
+      + '#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;'
+      + 'S.browser_fallback_url=' + enc(page + '#ar-unavailable') + ';end;';
+    document.getElementById('sv-link').href = sv; document.getElementById('android-ar').hidden = false;
+    if (location.hash === '#ar-unavailable') hint.textContent = 'AR could not start on this phone (it needs Google Play Services for AR and the Google app). You can still rotate and zoom the model above.', hint.hidden = false;
+  }
 </script>
 <footer>Shown at real size. Drag to rotate, pinch to zoom. &copy; Staging Canadell, Humboldt SK</footer>
 </body>
