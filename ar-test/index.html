@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>AR test</title>
+<style>body{font-family:Arial,sans-serif;padding:16px;max-width:560px;margin:auto}li{margin:14px 0;font-size:18px}
+#fail{display:none;background:#fde8e8;border:1px solid #c8102e;padding:10px;margin:10px 0}#ua{font-size:12px;color:#555;word-break:break-all}</style></head>
+<body><h2>Staging Canadell &ndash; AR test</h2>
+<p>Open this page in <b>Chrome</b> on the Android phone. Tap each test. Note which letters open the camera view and which don't.</p>
+<div id="fail"></div><ol style="list-style:none;padding:0">
+<li><a href="intent://arvr.google.com/scene-viewer/1.0?file=https%3A%2F%2Fstorage.googleapis.com%2Far-answers-in-search-models%2Fstatic%2FTiger%2Fmodel.glb&amp;mode=ar_preferred&amp;title=Test%20A#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;S.browser_fallback_url=https%3A%2F%2Fstagingcanadell.github.io%2Fcanadell-3d%2Far-test%2F%23fail-A;end;"><b>A</b> &ndash; Google sample tiger, Google app viewer</a></li>
+<li><a href="intent://arvr.google.com/scene-viewer/1.0?file=https%3A%2F%2Fstorage.googleapis.com%2Far-answers-in-search-models%2Fstatic%2FTiger%2Fmodel.glb&amp;mode=ar_preferred&amp;title=Test%20B#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=https%3A%2F%2Fstagingcanadell.github.io%2Fcanadell-3d%2Far-test%2F%23fail-B;end;"><b>B</b> &ndash; Google sample tiger, ARCore viewer</a></li>
+<li><a href="intent://arvr.google.com/scene-viewer/1.0?file=https%3A%2F%2Fstagingcanadell.github.io%2Fcanadell-3d%2F8x8-x-8%2Fmodel.glb%3Fv%3D43162957a2&amp;mode=ar_preferred&amp;title=Test%20C#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;S.browser_fallback_url=https%3A%2F%2Fstagingcanadell.github.io%2Fcanadell-3d%2Far-test%2F%23fail-C;end;"><b>C</b> &ndash; Small riser (8x8), Google app viewer</a></li>
+<li><a href="intent://arvr.google.com/scene-viewer/1.0?file=https%3A%2F%2Fstagingcanadell.github.io%2Fcanadell-3d%2F17x40x8-4-tier-seated-choral-riser-with-back-and-side-rails%2Fmodel.glb%3Fv%3D828c65a837&amp;mode=ar_preferred&amp;title=Test%20D#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;S.browser_fallback_url=https%3A%2F%2Fstagingcanadell.github.io%2Fcanadell-3d%2Far-test%2F%23fail-D;end;"><b>D</b> &ndash; Large riser (17x40), Google app viewer</a></li>
+<li><a href="intent://arvr.google.com/scene-viewer/1.0?file=https%3A%2F%2Fstagingcanadell.github.io%2Fcanadell-3d%2F17x40x8-4-tier-seated-choral-riser-with-back-and-side-rails%2Fmodel.glb%3Fv%3D828c65a837&amp;mode=ar_preferred&amp;title=Test%20E#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=https%3A%2F%2Fstagingcanadell.github.io%2Fcanadell-3d%2Far-test%2F%23fail-E;end;"><b>E</b> &ndash; Large riser (17x40), ARCore viewer</a></li>
+<li><a href="https://stagingcanadell.github.io/canadell-3d/17x40x8-4-tier-seated-choral-riser-with-back-and-side-rails/?ar=webxr"><b>F</b> &ndash; Large riser (17x40), AR inside Chrome</a></li>
+</ol><p id="ua"></p>
+<script>
+var h=location.hash.match(/^#fail-([A-F])$/);
+if(h){var f=document.getElementById('fail');f.style.display='block';f.textContent='Test '+h[1]+' could not start AR on this phone.';}
+document.getElementById('ua').textContent='Browser: '+navigator.userAgent+(navigator.xr?' | WebXR available':' | no WebXR');
+</script></body></html>
