@@ -17,7 +17,7 @@
   .layout { padding:8px 14px 0; }
   .layout h1 { font-size:17px; margin:0; }
   .layout p { font-size:13px; margin:3px 0 0; color:#555; }
-  model-viewer { width:100%; height:calc(100% - 210px); min-height:320px; background:#f3f3f3; --poster-color:#f3f3f3; }
+  model-viewer { width:100%; height:calc(100% - 230px); min-height:320px; background:#f3f3f3; --poster-color:#f3f3f3; }
   .ar-btn { position:absolute; left:50%; bottom:18px; transform:translateX(-50%); background:var(--red); color:#fff;
             border:0; border-radius:26px; padding:13px 24px; font-size:16px; font-weight:700; box-shadow:0 2px 8px #0004; }
   .no-ar { text-align:center; font-size:13px; color:#555; padding:8px 14px 0; }
@@ -25,6 +25,7 @@
   .android-ar { text-align:center; font-size:13px; padding:10px 14px 0; }
   .android-ar[hidden] { display:none; }
   .android-ar a { color:var(--red); font-weight:700; }
+  .android-ar .warn { background:#fff3cd; border:1px solid #e0c36a; padding:8px; margin-bottom:8px; }
   footer { font-size:11px; color:#777; padding:8px 14px; }
 </style>
 </head>
@@ -38,7 +39,7 @@
      Google app (Scene Viewer) can't serve an old cached copy after a republish.
      ar-modes: Android -> Scene Viewer first (most reliable), WebXR fallback; iPhone -> Quick Look
      (uses model.usdz if given, otherwise model-viewer builds the USDZ on the phone). -->
-<model-viewer src="model.glb?v=f02527944c" ios-src="model.usdz?v=f02527944c"
+<model-viewer src="model.glb?v=c5ec595ec0" ios-src="model.usdz?v=c5ec595ec0"
   alt="3D model of 14 CRT61 with back and side rails"
   ar ar-modes="scene-viewer webxr quick-look" ar-scale="fixed" ar-placement="floor"
   camera-controls touch-action="pan-y" shadow-intensity="1" exposure="0.85" tone-mapping="neutral"
@@ -46,23 +47,43 @@
   <button slot="ar-button" class="ar-btn">View in your space</button>
 </model-viewer>
 <div class="no-ar" id="no-ar" hidden>Open this page on a phone to place the model in your room.</div>
-<!-- Android backup (Oct 27): direct Scene Viewer intent to the Google app with the absolute https model URL, in case
-     model-viewer's own AR button doesn't start AR (in-app QR-scanner browsers, WebXR quirks). Shown on Android only. -->
-<div class="android-ar" id="android-ar" hidden>AR not opening? <a id="sv-link" href="#">Open in Google AR viewer</a><br>
-  <small>Needs an ARCore-supported Android phone with Google Play Services for AR and the Google app.</small></div>
+<!-- Android (Oct 28 rework): model-viewer's button and the old backup link BOTH went to the same Google-app Scene Viewer
+     intent, so the backup could never succeed where the button failed. Now three independent routes:
+     1 Google app Scene Viewer, 2 Google Play Services for AR (ARCore) Scene Viewer - works without the Google app,
+     3 in-browser WebXR AR in Chrome (no other app). Also: escape from in-app browsers (Lens/Google app/Facebook WebViews
+     can't open intent:// links) and a per-route message when that route's app is missing. -->
+<div class="android-ar" id="android-ar" hidden>
+  <div id="inapp" class="warn" hidden>This page opened inside another app, which can't start AR.<br><a id="open-chrome" href="#">Open this page in Chrome</a></div>
+  AR not opening? Try:<br>
+  <a id="sv-google" href="#">1 Google AR viewer</a> &middot; <a id="sv-arcore" href="#">2 ARCore viewer</a> &middot; <a id="sv-webxr" href="#">3 AR in Chrome</a><br>
+  <small>Needs an ARCore-supported Android phone. <span id="diag"></span></small></div>
 <script>
   // Hint only when this device cannot launch AR (desktop etc.); the AR button is hidden by model-viewer in that case.
-  const mv = document.querySelector('model-viewer'), hint = document.getElementById('no-ar');
-  const upd = () => { hint.hidden = !!mv.canActivateAR && location.hash !== '#ar-unavailable'; };
+  const mv = document.querySelector('model-viewer'), hint = document.getElementById('no-ar'), Q = new URLSearchParams(location.search);
+  if (Q.get('ar') === 'webxr') mv.setAttribute('ar-modes', 'webxr scene-viewer quick-look');   // route 3 (set before upgrade)
+  const upd = () => { hint.hidden = !!mv.canActivateAR && !/^#ar-unavailable/.test(location.hash); };
   mv.addEventListener('load', () => { upd(); mv.updateFraming(); mv.jumpCameraToGoal(); }); customElements.whenDefined('model-viewer').then(() => setTimeout(upd, 500));
-  if (/android/i.test(navigator.userAgent)) {
-    const page = location.href.split('#')[0], file = new URL(mv.getAttribute('src'), page).href, enc = encodeURIComponent;
-    const sv = 'intent://arvr.google.com/scene-viewer/1.0?file=' + enc(file) + '&mode=ar_preferred&resizable=false'
-      + '&title=' + enc(document.querySelector('.layout h1').textContent) + '&link=' + enc(page)
-      + '#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;'
-      + 'S.browser_fallback_url=' + enc(page + '#ar-unavailable') + ';end;';
-    document.getElementById('sv-link').href = sv; document.getElementById('android-ar').hidden = false;
-    if (location.hash === '#ar-unavailable') hint.textContent = 'AR could not start on this phone (it needs Google Play Services for AR and the Google app). You can still rotate and zoom the model above.', hint.hidden = false;
+  const ua = navigator.userAgent;
+  if (/android/i.test(ua)) {
+    const page = location.origin + location.pathname, file = new URL(mv.getAttribute('src'), location.href).href, enc = encodeURIComponent;
+    const title = document.querySelector('.layout h1').textContent;
+    const sv = (pkg, tag) => 'intent://arvr.google.com/scene-viewer/1.0?file=' + enc(file) + '&mode=ar_preferred&resizable=false'
+      + '&disable_occlusion=true&title=' + enc(title) + '&link=' + enc(page)
+      + '#Intent;scheme=https;package=' + pkg + ';action=android.intent.action.VIEW;'
+      + 'S.browser_fallback_url=' + enc(page + '#ar-unavailable-' + tag) + ';end;';
+    document.getElementById('sv-google').href = sv('com.google.android.googlequicksearchbox', 'google');
+    document.getElementById('sv-arcore').href = sv('com.google.ar.core', 'arcore');
+    document.getElementById('sv-webxr').href = page + '?ar=webxr';
+    const inApp = /; wv\)| GSA\/|FBAN|FBAV|Instagram|Snapchat|Line\/|LinkedInApp/.test(ua);
+    if (inApp) { document.getElementById('inapp').hidden = false;
+      document.getElementById('open-chrome').href = 'intent://' + location.host + location.pathname + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + enc(page) + ';end;'; }
+    const m = ua.match(/(SamsungBrowser|EdgA|Firefox|OPR|Chrome)\/(\d+)/), xr = 'xr' in navigator;
+    document.getElementById('diag').textContent = '[' + (m ? m[1] + ' ' + m[2] : 'browser ?') + (inApp ? ', in-app' : '') + (xr ? ', WebXR' : '') + ']';
+    document.getElementById('android-ar').hidden = false;
+    const msg = { '#ar-unavailable-google': 'The Google app could not open the AR viewer (missing, disabled or out of date). Try option 2 or 3.',
+                  '#ar-unavailable-arcore': 'Google Play Services for AR is not installed on this phone. Try option 3, or install "Google Play Services for AR" from the Play Store (only ARCore-supported phones can).',
+                  '#ar-unavailable': 'AR could not start on this phone. Try options 1-3 below.' }[location.hash];
+    if (msg) hint.textContent = msg + ' You can still rotate and zoom the model above.', hint.hidden = false;
   }
 </script>
 <footer>Shown at real size. Drag to rotate, pinch to zoom. &copy; Staging Canadell, Humboldt SK</footer>
