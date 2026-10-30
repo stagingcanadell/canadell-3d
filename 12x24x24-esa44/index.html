@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>12 x 24 x 24 ESA44 | Staging Canadell 3D</title>
+<meta name="robots" content="noindex, nofollow">
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.4.0/model-viewer.min.js"></script>
+<style>
+  :root { --red:#c8102e; --ink:#2b2b2b; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; font-family:Arial,Helvetica,sans-serif; color:var(--ink); background:#fff; }
+  header { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:3px solid var(--red); }
+  .brand { font-weight:900; letter-spacing:.5px; line-height:1; }
+  .brand b { display:block; font-size:20px; }
+  .brand small { display:block; font-size:9px; font-weight:700; color:var(--red); margin-top:3px; }
+  .layout { padding:8px 14px 0; }
+  .layout h1 { font-size:17px; margin:0; }
+  .layout p { font-size:13px; margin:3px 0 0; color:#555; }
+  model-viewer { width:100%; height:calc(100% - 230px); min-height:320px; background:#f3f3f3; --poster-color:#f3f3f3; }
+  .ar-btn { position:absolute; left:50%; bottom:18px; transform:translateX(-50%); background:var(--red); color:#fff;
+            border:0; border-radius:26px; padding:13px 24px; font-size:16px; font-weight:700; box-shadow:0 2px 8px #0004; }
+  .no-ar { text-align:center; font-size:13px; color:#555; padding:8px 14px 0; }
+  .no-ar[hidden] { display:none; }
+  .android-ar { text-align:center; font-size:13px; padding:10px 14px 0; }
+  .android-ar[hidden] { display:none; }
+  .android-ar a { color:var(--red); font-weight:700; }
+  .android-ar .warn { background:#fff3cd; border:1px solid #e0c36a; padding:8px; margin-bottom:8px; }
+  footer { font-size:11px; color:#777; padding:8px 14px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>STAGING CANADELL</b><small>PORTABLE STAGING AND MUSIC RISER EXPERTS</small></div>
+</header>
+<div class="layout"><h1>12 x 24 x 24 ESA44</h1><p>24'-0&quot; x 12'-0&quot;</p></div>
+
+<!-- Model is real size in metres. ar-scale="fixed" = 1:1 true size, no pinch-resize. ar-placement="floor" = WebXR hit-tests
+     for the floor and sets the model's base on it. src carries ?v=<model hash> so no viewer serves an old cached copy.
+     ar-modes: Android -> WebXR in Chrome first (Oct 28: Scene Viewer failed on Kane's Android, WebXR worked), Scene Viewer
+     only if WebXR is unavailable; iPhone -> Quick Look (model.usdz if given), unchanged. -->
+<model-viewer src="model.glb?v=e6501c72e8" ios-src="model.usdz?v=e6501c72e8"
+  alt="3D model of 12 x 24 x 24 ESA44"
+  ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed" ar-placement="floor"
+  camera-controls touch-action="pan-y" shadow-intensity="1" exposure="0.85" tone-mapping="neutral"
+  camera-orbit="-25deg 65deg 140%" field-of-view="30deg" environment-image="neutral">
+  <button slot="ar-button" class="ar-btn">View in your space</button>
+</model-viewer>
+<div class="no-ar" id="no-ar" hidden>Open this page on a phone to place the model in your room.</div>
+<!-- Android: the AR button opens WebXR in Chrome. Pages opened inside another app (Lens, Google app, Facebook WebViews) can't
+     start AR, so offer "Open in Chrome". One small Scene Viewer link stays for phones where in-Chrome AR isn't available. -->
+<div class="android-ar" id="android-ar" hidden>
+  <div id="inapp" class="warn" hidden>This page opened inside another app, which can't start AR.<br><a id="open-chrome" href="#">Open this page in Chrome</a></div>
+  <small>AR not opening? <a id="sv-google" href="#">Try the Google AR viewer</a> <span id="diag"></span></small></div>
+<script>
+  // Hint only when this device cannot launch AR (desktop etc.); the AR button is hidden by model-viewer in that case.
+  const mv = document.querySelector('model-viewer'), hint = document.getElementById('no-ar');
+  const upd = () => { hint.hidden = !!mv.canActivateAR && !/^#ar-unavailable/.test(location.hash); };
+  mv.addEventListener('load', () => { upd(); mv.updateFraming(); mv.jumpCameraToGoal(); }); customElements.whenDefined('model-viewer').then(() => setTimeout(upd, 500));
+  const ua = navigator.userAgent;
+  if (/android/i.test(ua)) {
+    const page = location.origin + location.pathname, file = new URL(mv.getAttribute('src'), location.href).href, enc = encodeURIComponent;
+    const title = document.querySelector('.layout h1').textContent;
+    document.getElementById('sv-google').href = 'intent://arvr.google.com/scene-viewer/1.0?file=' + enc(file)
+      + '&mode=ar_preferred&resizable=false&disable_occlusion=true&title=' + enc(title) + '&link=' + enc(page)
+      + '#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;'
+      + 'S.browser_fallback_url=' + enc(page + '#ar-unavailable') + ';end;';
+    const inApp = /; wv\)| GSA\/|FBAN|FBAV|Instagram|Snapchat|Line\/|LinkedInApp/.test(ua);
+    if (inApp) { document.getElementById('inapp').hidden = false;
+      document.getElementById('open-chrome').href = 'intent://' + location.host + location.pathname + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + enc(page) + ';end;'; }
+    const m = ua.match(/(SamsungBrowser|EdgA|Firefox|OPR|Chrome)\/(\d+)/);
+    document.getElementById('diag').textContent = '[' + (m ? m[1] + ' ' + m[2] : 'browser ?') + (inApp ? ', in-app' : '') + ('xr' in navigator ? ', WebXR' : '') + ']';
+    document.getElementById('android-ar').hidden = false;
+    const say = s => { hint.textContent = s + ' You can still rotate and zoom the model above.'; hint.hidden = false; };
+    if (location.hash === '#ar-unavailable') say('The Google AR viewer is not available on this phone. Open this page in Chrome and tap "View in your space".');
+    mv.addEventListener('ar-status', e => { if (e.detail.status === 'failed') say('AR could not start. Open this page in Chrome on an ARCore-supported phone and try again.'); });
+  }
+</script>
+<footer>Shown at real size. Drag to rotate, pinch to zoom. &copy; Staging Canadell, Humboldt SK</footer>
+</body>
+</html>
